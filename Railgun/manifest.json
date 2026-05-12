@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Railgun 自动签到助手",
+  "version": "0.1.0",
+  "description": "每天定时在后台静默请求 Railgun 签到接口。",
+  "permissions": [
+    "alarms",
+    "cookies",
+    "declarativeNetRequest",
+    "notifications",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://mail.google.com/*",
+    "https://railgun.info/*"
+  ],
+  "action": {
+    "default_title": "Railgun 自动签到助手",
+    "default_popup": "popup.html"
+  },
+  "options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}

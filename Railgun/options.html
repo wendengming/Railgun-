@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>设置 - Railgun 自动签到助手</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --text: #16202a;
+      --muted: #5d6b78;
+      --border: #d8e0e8;
+      --primary: #1769e0;
+      --primary-hover: #0f58bf;
+      --danger: #b42318;
+    }
+
+    body {
+      margin: 0;
+      min-width: 560px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 32px auto;
+      padding: 0 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 8px 22px rgba(17, 31, 44, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: 22px;
+      line-height: 1.3;
+    }
+
+    h2 {
+      margin: 24px 0 10px;
+      font-size: 16px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 24px 0 10px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+    }
+
+    .collapse-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 6px;
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .collapse-btn:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .collapse-btn .caret {
+      display: inline-block;
+      transition: transform 0.18s ease;
+    }
+
+    .collapse-btn[aria-expanded="false"] .caret {
+      transform: rotate(-90deg);
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      box-sizing: border-box;
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 10px;
+      color: var(--text);
+      background: #fff;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .hint {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .checkline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      font-weight: 500;
+    }
+
+    .checkline input {
+      width: 16px;
+      height: 16px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      padding: 8px 14px;
+    }
+
+    button.primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--primary-hover);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    code {
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #eef3f8;
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
+
+    #status {
+      min-height: 22px;
+      margin-top: 12px;
+      color: var(--muted);
+    }
+
+    #status.error {
+      color: var(--danger);
+    }
+
+    #historyList {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+
+    #historyList li {
+      margin: 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="panel">
+      <h1>Railgun 自动签到助手</h1>
+
+      <label for="targetHour">每日签到时间</label>
+      <select id="targetHour"></select>
+      <p class="hint">到达该小时后，扩展会按小时检查一次，并在后台静默请求 Railgun 签到接口。</p>
+
+      <label for="cookieString">Cookie（可选）</label>
+      <textarea id="cookieString" spellcheck="false" placeholder="例如：koa:sess=...; koa:sess.sig=..."></textarea>
+      <p class="hint">不填写时使用当前 Chrome 已登录的 Railgun 状态；填写后只保存在本机扩展存储里。</p>
+
+      <div class="hint">
+        当前静默接口：<code>POST https://railgun.info/api/user/checkin</code>
+      </div>
+
+      <label class="checkline" for="notifyToggle">
+        <input type="checkbox" id="notifyToggle">
+        开启桌面通知
+      </label>
+
+      <div class="section-title">
+        <h2>自动登录</h2>
+        <button id="autoLoginToggle" class="collapse-btn" type="button" aria-expanded="true" aria-controls="autoLoginBody" title="展开或折叠自动登录设置">
+          <span class="caret">▼</span>
+        </button>
+      </div>
+
+      <div id="autoLoginBody">
+        <label class="checkline" for="autoLoginEnabled">
+          <input type="checkbox" id="autoLoginEnabled">
+          登录失效时自动用 Gmail 验证码登录 Railgun
+        </label>
+
+        <label for="railgunEmail">Railgun 登录邮箱</label>
+        <input id="railgunEmail" type="text" spellcheck="false" autocomplete="email" placeholder="your-name@gmail.com">
+
+        <label for="gmailKeywords">验证码邮件关键词</label>
+        <input id="gmailKeywords" type="text" spellcheck="false">
+        <p class="hint">只在需要重新登录时读取 Gmail 收件箱 Feed。该 Feed 通常只返回未读收件箱邮件，所以 Railgun 验证码邮件到达后请先不要手动读掉。</p>
+
+        <div class="hint">
+          Gmail Feed 地址：<code id="gmailFeedUrl">https://mail.google.com/mail/feed/atom</code>
+        </div>
+
+        <div class="actions">
+          <button id="gmailFeedTestBtn">测试 Gmail Feed</button>
+        </div>
+
+        <div id="gmailStatus" class="hint"></div>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn" class="primary">保存设置</button>
+        <button id="testBtn">立即静默测试签到</button>
+        <button id="refreshBtn">刷新日志</button>
+      </div>
+
+      <div id="status"></div>
+
+      <h2>最近 30 次签到日志</h2>
+      <ul id="historyList"></ul>
+    </section>
+  </main>
+
+  <script src="options.js"></script>
+</body>
+</html>

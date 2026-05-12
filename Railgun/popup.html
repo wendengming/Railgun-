@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Railgun 自动签到助手</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #182433;
+      --muted: #667789;
+      --border: #dde5ee;
+      --primary: #1769e0;
+      --primary-hover: #0f58bf;
+      --ok: #148a4b;
+      --warn: #b06000;
+      --danger: #b42318;
+    }
+
+    body {
+      box-sizing: border-box;
+      width: 360px;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .wrap {
+      padding: 14px;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #e8f0ff;
+      display: grid;
+      place-items: center;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+
+    .subtitle {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .pill {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--muted);
+      padding: 4px 9px;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .meta-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .meta-value {
+      font-weight: 600;
+      min-height: 20px;
+      word-break: break-word;
+    }
+
+    .last-log {
+      color: var(--muted);
+      max-height: 62px;
+      overflow: hidden;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      padding: 8px 12px;
+    }
+
+    button.primary {
+      flex: 1;
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    button.primary:hover {
+      background: var(--primary-hover);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .status {
+      min-height: 20px;
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      margin-top: 12px;
+      padding-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .settings-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      padding: 6px 4px;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .settings-btn:hover {
+      color: var(--primary);
+    }
+
+    .settings-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo">RG</div>
+        <div>
+          <h1 class="title">Railgun 签到</h1>
+          <p class="subtitle">后台静默运行</p>
+        </div>
+      </div>
+      <div id="statePill" class="pill">读取中</div>
+    </div>
+
+    <section class="card">
+      <div class="grid">
+        <div>
+          <div class="meta-label">定时时间</div>
+          <div id="targetHour" class="meta-value">--:00</div>
+        </div>
+        <div>
+          <div class="meta-label">自动登录</div>
+          <div id="autoLogin" class="meta-value">--</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="checkBtn" class="primary">立即检测</button>
+      </div>
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="card">
+      <div class="meta-label">最近日志</div>
+      <div id="lastLog" class="last-log">暂无签到日志</div>
+    </section>
+
+    <div class="footer">
+      <button id="settingsBtn" class="settings-btn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path>
+          <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04a2.1 2.1 0 0 1-2.97 2.97l-.04-.04a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.09 1.65V21.3a2.1 2.1 0 0 1-4.2 0v-.06a1.8 1.8 0 0 0-1.09-1.65 1.8 1.8 0 0 0-1.98.36l-.04.04a2.1 2.1 0 0 1-2.97-2.97l.04-.04A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-1.65-1.09H2.9a2.1 2.1 0 0 1 0-4.2h.06A1.8 1.8 0 0 0 4.6 8.62a1.8 1.8 0 0 0-.36-1.98l-.04-.04a2.1 2.1 0 0 1 2.97-2.97l.04.04a1.8 1.8 0 0 0 1.98.36A1.8 1.8 0 0 0 10.28 2.4V2.1a2.1 2.1 0 0 1 4.2 0v.3a1.8 1.8 0 0 0 1.09 1.65 1.8 1.8 0 0 0 1.98-.36l.04-.04a2.1 2.1 0 0 1 2.97 2.97l-.04.04a1.8 1.8 0 0 0-.36 1.98 1.8 1.8 0 0 0 1.65 1.09h.29a2.1 2.1 0 0 1 0 4.2h-.29A1.8 1.8 0 0 0 19.4 15Z"></path>
+        </svg>
+        设置
+      </button>
+      <span>v0.1.0</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
