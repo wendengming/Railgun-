@@ -40,7 +40,4 @@
 ## 说明
 
 - Cookie 只保存在本机 Chrome 扩展存储中，不会发送到 Railgun 以外的网站。
-- 静默签到接口来自 Railgun 控制台 Points 页面：`POST https://railgun.info/api/user/checkin`，请求体为 `{"token":"railgun.info"}`。
-- 自动登录接口来自 Railgun 登录页：`POST https://railgun.info/api/authorization` 和 `POST https://railgun.info/api/login`。
-- Gmail 自动登录读取 `https://mail.google.com/mail/feed/atom`。这个 Feed 通常只返回未读收件箱邮件，所以验证码邮件到达后请先不要手动读掉。
 - 自动任务使用 Chrome Alarms，每 60 分钟检查一次；当天成功尝试后不再重复自动执行。
